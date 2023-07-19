@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Customer Database - Search</title>
+  <link rel="stylesheet" href="../static/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="shortcut icon" href="../static/android-chrome-192x192.png" type="image/x-icon">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <header>
+    <img src="../static/whatss-removebg-preview.png" alt="Logo">
+    <nav>
+      <ul>
+        <li>
+          <a href="/">
+            <span class="icon">
+              <i class="fa fa-home"></i>
+            </span>
+            <span class="text">Home</span>
+          </a>
+        </li>
+        <li>
+          <a href="/remove">
+            <span class="icon">
+              <i class="fa fa-trash"></i>
+            </span>
+            <span class="text">Delete</span>
+          </a>
+        </li>
+        {% if google_info %}
+        <li>
+          <a href="{{ url_for('google_logout') }}">
+            <span class="icon">
+              <i class="fa fa-sign-out"></i>
+            </span>
+            <span class="text">Log Out</span>
+          </a>
+        </li>
+        {% else %}
+        <li>
+          <a href="{{ url_for('google_login') }}">
+            <span class="icon">
+              <i class="fa fa-sign-in"></i>
+            </span>
+            <span class="text">Log In</span>
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% if google_info %}
+    <div class="user-profile">
+      <img class="profile-image" src="{{ google_info.get('picture') }}" alt="Profile Picture">
+      <span class="text">{{ google_info.get('name') }}</span>
+    </div>
+    {% else %}
+    <div class="user-profile">
+      <span class="text">Please log in with your Google account</span>
+    </div>
+    {% endif %}
+  </header>
+  
+  <main>
+    {% if google_info %}
+      <h1>Search Customers</h1>
+      <form action="/search" method="POST">
+        <div class="form-group">
+          <input type="text" id="search" name="search" placeholder="Enter customer name or number">
+          <button type="submit">Search&nbsp;&nbsp;<i class="fa fa-search"></i></button>
+        </div>
+      </form>      
+      <div id="search-results">
+        {% if results %}
+          <h2>Search Results</h2>
+          <table>
+            <tr>
+              <th>Name</th>
+              <th>Contact</th>
+              <th>Phone</th>
+              <th>Complaints</th>
+              <th>Solution</th>
+              <th>Cost</th>
+              <th>Part Payment</th>
+              <th>Balance Payment</th>
+              <th>Date</th>
+              <th>Remarks</th>
+            </tr>
+            {% for result in results %}
+              <tr>
+                <td>{{ result[1] }}</td>
+                <td>{{ result[2] }}</td>
+                <td>{{ result[3] }}</td>
+                <td>{{ result[4] }}</td>
+                <td>{{ result[5] }}</td>
+                <td>{{ result[6] }}</td>
+                <td>{{ result[7] }}</td>
+                <td>{{ result[8] }}</td>
+                <td>{{ result[9] }}</td>
+                <td>{{ result[10] }}</td>
+              </tr>
+            {% endfor %}
+          </table>
+        {% else %}
+          <p>No results found.</p>
+        {% endif %}
+      </div>
+    {% else %}
+      <div class="login-container">
+        <h2>Welcome!</h2>
+        <p>Please log in with your Google account to access the content.</p>
+        <a href="{{ url_for('google_login') }}"><button class="complex">Log in with Google</button></a>
+      </div>
+    {% endif %}
+  </main>
+  
+
+  <footer>
+    <p>&copy; 2023 VivianBanx. All rights reserved.</p>
+    <a href="/" class="back-btn">Go Back to Home Page</a>
+  </footer>  
+</body>
+</html>
