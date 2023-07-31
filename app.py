@@ -7,7 +7,6 @@ from google.auth.transport import requests
 import os
 
 app = Flask(__name__)
-app.config["DEBUG"] = False
 app.secret_key = 'your_secret_key'
 INSTANCE_PATH = os.path.join(os.getcwd(), 'instance')
 DATABASE = os.path.join(INSTANCE_PATH, 'customer.db')
@@ -219,7 +218,4 @@ def google_logout():
 
 if __name__ == '__main__':
     create_database()
-    # app.run(host='0.0.0.0', port=os.environ.get('PORT', 5000))
-
-
-app = Flask(__name__, static_folder='static')
+    app.run(debug=True, port=8080)
