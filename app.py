@@ -12,7 +12,7 @@ INSTANCE_PATH = os.path.join(os.getcwd(), 'instance')
 DATABASE = os.path.join(INSTANCE_PATH, 'customer.db')
 GOOGLE_CLIENT_ID = '230709683962-3n962ues65d5o6r9clhk8d4cenj27vfm.apps.googleusercontent.com'
 GOOGLE_CLIENT_SECRET = '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'
-GOOGLE_AUTH_REDIRECT_URI = 'http://localhost:8080/google/callback'
+GOOGLE_AUTH_REDIRECT_URI = 'https://customer-db.onrender.com/google/callback'
 
 # Create the database and table if they don't exist
 def create_database():
