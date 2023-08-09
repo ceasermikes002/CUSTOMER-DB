@@ -1,0 +1,44 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+backoff = "==2.2.1"
+blinker = "==1.6.2"
+cachetools = "==5.3.1"
+certifi = "==2023.5.7"
+charset-normalizer = "==3.2.0"
+click = "==8.1.4"
+colorama = "==0.4.6"
+flask = "*"
+flask-login = "==0.6.2"
+flask-sqlalchemy = "==3.0.5"
+geographiclib = "==2.0"
+geopy = "==2.3.0"
+google-auth = "==2.22.0"
+google-auth-oauthlib = "==1.0.0"
+greenlet = "==2.0.2"
+idna = "==3.4"
+itsdangerous = "==2.1.2"
+jinja2 = "==3.1.2"
+markupsafe = "==2.1.3"
+oauthlib = "==3.2.2"
+opencage = "==2.3.0"
+phonenumbers = "==8.13.16"
+pyasn1 = "==0.5.0"
+pyasn1-modules = "==0.3.0"
+requests = "==2.31.0"
+requests-oauthlib = "==1.3.1"
+rsa = "==4.9"
+six = "==1.16.0"
+sqlalchemy = "==2.0.18"
+typing-extensions = "==4.7.1"
+urllib3 = "==1.26.16"
+werkzeug = "==2.3.6"
+gunicorn = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.11"
