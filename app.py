@@ -63,9 +63,7 @@ def index():
 # Route for saving the customer form data
 @app.route('/submit', methods=['POST'])
 def submit():
-    google_info = session.get('google_info')
-    user_info = session.get('user_info')
-    if google_info and user_info:
+    if request.method == 'POST':
         name = request.form['name']
         contact = request.form['contact']
         phone = request.form['phone']
@@ -76,25 +74,23 @@ def submit():
         balance_payment = request.form['balancePayment']
         date = request.form['date']
         remarks = request.form['remarks']
-        google_account_id = user_info['sub']  # Get the unique Google account ID
 
-        conn = sqlite3.connect(DATABASE)
-        c = conn.cursor()
         try:
+            conn = sqlite3.connect(DATABASE)
+            c = conn.cursor()
             c.execute('''INSERT INTO customers
-                         (google_account_id, name, contact, phone, complaints, solution, cost, part_payment, balance_payment, date, remarks)
-                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                      (google_account_id, name, contact, phone, complaints, solution, cost, part_payment, balance_payment, date, remarks))
+                         (name, contact, phone, complaints, solution, cost, part_payment, balance_payment, date, remarks)
+                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                      (name, contact, phone, complaints, solution, cost, part_payment, balance_payment, date, remarks))
             conn.commit()
             flash('Customer added successfully!', 'success')
         except sqlite3.Error as e:
             flash('Failed to add customer: {}'.format(str(e)), 'error')
         finally:
             conn.close()
-    else:
-        flash('You need to log in with your Google account to add a customer.', 'error')
 
-    return redirect(url_for('index'))
+        return redirect(url_for('index'))
+
 
 
 # Route for the search page
