@@ -1,58 +1,82 @@
-import os
-import sqlite3
+import flask
 from flask import Flask, flash, render_template, request, redirect, url_for, session
+import sqlite3
 from google.oauth2 import id_token
 from google_auth_oauthlib.flow import Flow
 from google.auth.transport import requests
+import os
 
 app = Flask(__name__)
-
-# Set a secure secret key for session management
-app.secret_key = os.environ.get('FLASK_SECRET_KEY', 'your_default_secret_key')
-
-# Database Configuration
+app.secret_key = 'your_secret_key'
 INSTANCE_PATH = os.path.join(os.getcwd(), 'instance')
 DATABASE = os.path.join(INSTANCE_PATH, 'customer.db')
 GOOGLE_CLIENT_ID = '230709683962-3n962ues65d5o6r9clhk8d4cenj27vfm.apps.googleusercontent.com'
+GOOGLE_CLIENT_SECRET = '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'
 GOOGLE_AUTH_REDIRECT_URI = 'https://customer-db.onrender.com/google/callback'
 
-# Function to create the database and customers table
+# Create the database and table if they don't exist
 def create_database():
     conn = sqlite3.connect(DATABASE)
     c = conn.cursor()
 
-    c.execute('''CREATE TABLE IF NOT EXISTS customers
-                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                 name TEXT,
-                 contact TEXT,
-                 phone TEXT,
-                 complaints TEXT,
-                 solution TEXT,
-                 cost TEXT,
-                 part_payment TEXT,
-                 balance_payment TEXT,
-                 date TEXT,
-                 remarks TEXT,
-                 google_account_id TEXT)''')
+    # Check if the customers table exists
+    c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='customers'")
+    table_exists = c.fetchone()
+
+    if not table_exists:
+        c.execute('''CREATE TABLE customers
+                     (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                     name TEXT,
+                     contact TEXT,
+                     phone TEXT,
+                     complaints TEXT,
+                     solution TEXT,
+                     cost TEXT,
+                     part_payment TEXT,
+                     balance_payment TEXT,
+                     date TEXT,
+                     remarks TEXT,
+                     google_account_id TEXT)''')
+    else:
+        # Check if the google_account_id column exists
+        c.execute("PRAGMA table_info(customers)")
+        columns = [column[1] for column in c.fetchall()]
+        if 'google_account_id' not in columns:
+            c.execute("ALTER TABLE customers ADD COLUMN google_account_id TEXT")
 
     conn.commit()
     conn.close()
+
 
 # Route for the index page
 @app.route('/')
 def index():
     google_info = session.get('google_info')
     user_info = session.get('user_info')
-    return render_template('index.html', google_info=google_info, user_info=user_info)
+    if google_info and user_info:
+        return render_template('index.html', google_info=google_info)
+    else:
+        return render_template('index.html')
 
-# Route for saving customer form data
+
+
+# Route for saving the customer form data
 @app.route('/submit', methods=['POST'])
 def submit():
     google_info = session.get('google_info')
     user_info = session.get('user_info')
     if google_info and user_info:
-        data = {field: request.form[field] for field in request.form}
-        data['google_account_id'] = user_info['sub']
+        name = request.form['name']
+        contact = request.form['contact']
+        phone = request.form['phone']
+        complaints = request.form['complaints']
+        solution = request.form['solution']
+        cost = request.form['cost']
+        part_payment = request.form['partPayment']
+        balance_payment = request.form['balancePayment']
+        date = request.form['date']
+        remarks = request.form['remarks']
+        google_account_id = user_info['sub']  # Get the unique Google account ID
 
         conn = sqlite3.connect(DATABASE)
         c = conn.cursor()
@@ -60,8 +84,7 @@ def submit():
             c.execute('''INSERT INTO customers
                          (google_account_id, name, contact, phone, complaints, solution, cost, part_payment, balance_payment, date, remarks)
                          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                      (data['google_account_id'], data['name'], data['contact'], data['phone'], data['complaints'],
-                       data['solution'], data['cost'], data['partPayment'], data['balancePayment'], data['date'], data['remarks']))
+                      (google_account_id, name, contact, phone, complaints, solution, cost, part_payment, balance_payment, date, remarks))
             conn.commit()
             flash('Customer added successfully!', 'success')
         except sqlite3.Error as e:
@@ -73,13 +96,13 @@ def submit():
 
     return redirect(url_for('index'))
 
-# Route for searching customers
+
+# Route for the search page
+# Route for the search page
 @app.route('/search', methods=['GET', 'POST'])
 def search():
     google_info = session.get('google_info')
     user_info = session.get('user_info')
-    results = []
-
     if google_info and user_info:
         if request.method == 'POST':
             search_query = request.form['search']
@@ -89,16 +112,19 @@ def search():
                       ('%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%'))
             results = c.fetchall()
             conn.close()
+            return render_template('search.html', results=results, google_info=google_info)
+        return render_template('search.html', google_info=google_info)
+    else:
+        return render_template('search.html', google_info=None)  # Pass google_info as None
 
-    return render_template('search.html', results=results, google_info=google_info)
 
-# Route for removing customers
+
+
+# Route for the remove page
 @app.route('/remove', methods=['GET', 'POST'])
 def remove():
     google_info = session.get('google_info')
     user_info = session.get('user_info')
-    results = []
-
     if google_info and user_info:
         if request.method == 'POST':
             search_query = request.form['search']
@@ -108,8 +134,13 @@ def remove():
                       ('%' + search_query + '%', '%' + search_query + '%'))
             results = c.fetchall()
             conn.close()
+            return render_template('remove.html', results=results, google_info=google_info)
+        return render_template('remove.html', google_info=google_info, user_info=user_info)  # Pass user_info variable
+    else:
+        return render_template('remove.html', google_info=None)  # Pass google_info as None
 
-    return render_template('remove.html', results=results, google_info=google_info, user_info=user_info)
+
+
 
 # Route for deleting a customer
 @app.route('/delete/<int:customer_id>', methods=['POST'])
@@ -128,6 +159,7 @@ def delete(customer_id):
 
     return redirect(url_for('remove'))
 
+
 # Google OAuth routes
 @app.route('/google/login', endpoint='google_login')
 def google_login():
@@ -137,17 +169,18 @@ def google_login():
         redirect_uri=GOOGLE_AUTH_REDIRECT_URI
     )
     authorization_url, state = flow.authorization_url(access_type='offline')
-    session['google_auth_state'] = state
+    session['google_auth_state'] = state  # Store the state value in the session
     return redirect(authorization_url)
+
 
 @app.route('/google/callback')
 def google_callback():
     code = request.args.get('code')
     flow = Flow.from_client_secrets_file(
-        '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',
+        'client_secret.json',
         scopes=['openid', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile'],
         redirect_uri=GOOGLE_AUTH_REDIRECT_URI,
-        state=session.get('google_auth_state', '')
+        state=session.get('google_auth_state')  # Use get() with a fallback value
     )
     flow.fetch_token(code=code)
     credentials = flow.credentials
@@ -157,20 +190,32 @@ def google_callback():
         GOOGLE_CLIENT_ID
     )
     if id_info:
+        # Authentication successful, store user information in session
         session['google_info'] = id_info
-        session['user_info'] = {'sub': id_info.get('sub'), 'picture': id_info.get('picture')}
+
+        # Add profile picture to user_info
+        session['user_info'] = id_info
+        session['user_info']['picture'] = id_info.get('picture')
+
+        print(id_info)  # Add this line
+
     else:
+        # Authentication failed
         flash('Google authentication failed.', 'error')
 
     return redirect(url_for('index'))
 
+
+
+
 @app.route('/google/logout')
 def google_logout():
     session.pop('google_info', None)
-    session.pop('user_info', None)
+    session.pop('user_info', None)  # Add this line
     return redirect(url_for('index'))
+
+
 
 if __name__ == '__main__':
     create_database()
-    # Use Gunicorn for deployment
     app.run(debug=True, port=5000)
