@@ -7,7 +7,7 @@ from google.auth.transport import requests
 import os
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
+app.secret_key = '145536b56e9d50d02e6aec3b87282d76'
 INSTANCE_PATH = os.path.join(os.getcwd(), 'instance')
 DATABASE = os.path.join(INSTANCE_PATH, 'customer.db')
 GOOGLE_CLIENT_ID = '230709683962-3n962ues65d5o6r9clhk8d4cenj27vfm.apps.googleusercontent.com'
