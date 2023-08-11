@@ -16,8 +16,8 @@ GOOGLE_AUTH_REDIRECT_URI = 'https://customer-db.onrender.com/google/callback'
 
 # Create the database and table if they don't exist
 def create_database():
-    conn = sqlite3.connect(DATABASE)
-    c = conn.cursor()
+    with sqlite3.connect(DATABASE) as conn:
+     c = conn.cursor()
 
     # Check if the customers table exists
     c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='customers'")
